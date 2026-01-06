@@ -1,5 +1,7 @@
 use axum::{http::StatusCode, response::{IntoResponse, Response}};
 
+pub type Result<T> = core::result::Result<T, Error>; // An alias type for Result
+
 #[derive(Debug)]
 pub enum Error {
     LoginFail

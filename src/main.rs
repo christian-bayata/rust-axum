@@ -1,11 +1,14 @@
 #![allow(unused)] // To be deleted later!
-
+ 
 use axum::{Router, extract::{Path, Query}, response::{Html, IntoResponse}, routing::{get, get_service}};
 use serde::Deserialize;
 use tower_http::services::ServeDir;
 use std::{net::SocketAddr};
 
+pub use self::error::{Error, Result};
+
 mod error;
+mod web;
 
 #[tokio::main]
 async fn main() {
