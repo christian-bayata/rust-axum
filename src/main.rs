@@ -12,7 +12,9 @@ mod web;
 
 #[tokio::main]
 async fn main() {
-    let route = Router::new().merge(route_fx());
+    let route = Router::new()
+        .merge(route_fx())
+        .merge(web::routes_login::routes());
 
     // region:  -- Start Server
     let addr = SocketAddr::from(([127,0,0,1], 8080));
