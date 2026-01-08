@@ -1,13 +1,15 @@
 #![allow(unused)] // To be deleted later!
  
-use axum::{Router, extract::{Path, Query}, response::{Html, IntoResponse}, routing::{get, get_service}};
+use axum::{Router, extract::{Path, Query}, middleware, response::{Html, IntoResponse, Response}, routing::{get, get_service}};
 use serde::Deserialize;
+use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeDir;
 use std::{net::SocketAddr};
 
 pub use self::error::{Error, Result};
 
 mod error;
+mod model;
 mod web;
 
 #[tokio::main]
@@ -32,7 +34,17 @@ fn route_fx() -> Router {
         get(handler_query_fx)
     )
     .route("/hello2/:name", get(handler_path_fx))
+    .layer(middleware::map_response(main_response_mapper))
+    .layer(CookieManagerLayer::new())
     .fallback_service(route_static_fx()) // A fallback service
+}
+
+async fn main_response_mapper(res: Response) -> Response {
+    println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
+
+    println!();
+    
+    res
 }
 
 /* Static routing */

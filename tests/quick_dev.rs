@@ -9,7 +9,7 @@ async fn quick_dev() -> Result<()> {
 
    let req_login = http_client.do_post("/api/login", json!({
       "username": "demo1",
-      "pasword": "welcome"
+      "password": "welcome"
    }));
    req_login.await?.print().await?;
 

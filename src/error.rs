@@ -4,7 +4,10 @@ pub type Result<T> = core::result::Result<T, Error>; // An alias type for Result
 
 #[derive(Debug)]
 pub enum Error {
-    LoginFail
+    LoginFail,
+
+    // -- Model errors
+    TicketDeleteFailIdNotFound { id: u64}
 }
 
 impl IntoResponse for Error {
