@@ -11,9 +11,13 @@ serde_json = "1"
 
 
 # Axum
-axum = "0.6"
-tower-http = { version = "0.4", features = ["fs"] }
-tower-cookies = "0.9"
+axum = "0.7"
+"tower" = "0.4"
+tower-cookies = "0.10"
+tower-http = { version = "0.5", features = ["fs"] }
+
+# Others
+lazy-regex = "2"
 
 [dev-dependencies]
 anyhow = "1"

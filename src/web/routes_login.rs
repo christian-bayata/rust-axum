@@ -16,7 +16,7 @@ async fn login(cookies: Cookies, login_dto: Json<LoginDto>) -> Result<Json<Value
         return Err(Error::LoginFail)
     }
 
-    cookies.add(Cookie::new(AUTH_TOKEN, "uer1.exp.sign"));
+    cookies.add(Cookie::new(AUTH_TOKEN, "user-1.exp.sign"));
 
     let body = Json(json!({
         "result": {

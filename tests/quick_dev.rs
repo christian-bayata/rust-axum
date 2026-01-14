@@ -5,13 +5,19 @@ use serde_json::json;
 async fn quick_dev() -> Result<()> {
    let http_client =  httpc_test::new_client("http://localhost:8080")?;
 
-   http_client.do_get("/hello?name=Frank").await?.print().await?;
+  // http_client.do_get("/hello?name=Frank").await?.print().await?;
 
    let req_login = http_client.do_post("/api/login", json!({
       "username": "demo1",
       "password": "welcome"
    }));
    req_login.await?.print().await?;
+
+
+   let req_create_ticket = http_client.do_post("/api/tickets", json!({
+      "title": "Ticket A"
+   })); 
+   req_create_ticket.await?.print().await?;
 
    Ok(())
 }

@@ -6,6 +6,8 @@ use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeDir;
 use std::{net::SocketAddr};
 
+use crate::model::ModelController;
+
 pub use self::error::{Error, Result};
 
 mod error;
@@ -13,31 +15,49 @@ mod model;
 mod web;
 
 #[tokio::main]
-async fn main() {
-    let route = Router::new()
-        .merge(route_fx())
-        .merge(web::routes_login::routes());
+async fn main() -> Result<()> {
+    let mc = ModelController::new().await?;
+
+    let routes_all = Router::new()
+        .merge(routes_public())
+        .merge(web::routes_login::routes())
+        .nest("/api", routes_apis(mc.clone()))
+        .layer(middleware::map_response(main_response_mapper))
+        .layer(CookieManagerLayer::new());
+
 
     // region:  -- Start Server
     let addr = SocketAddr::from(([127,0,0,1], 8080));
     println!("->> LISTENING on {addr}\n");
-    axum::Server::bind(&addr)
-        .serve(route.into_make_service())
-        .await 
-        .unwrap()
+
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, routes_all).await.unwrap();
+
+    Ok(())
 }
 
-/* Route method */
-fn route_fx() -> Router { 
-    Router::new().route(
-        "/hello",
-        get(handler_query_fx)
-    )
-    .route("/hello2/:name", get(handler_path_fx))
-    .layer(middleware::map_response(main_response_mapper))
-    .layer(CookieManagerLayer::new())
-    .fallback_service(route_static_fx()) // A fallback service
+
+
+// ============================================================================
+// Routes - Public
+// ============================================================================
+
+fn routes_public() -> Router {
+    Router::new()
+    .route("/hello", axum::routing::get(|| async { "Hello World!" }))
 }
+
+
+// ============================================================================
+// Routes - API (Protected)
+// ============================================================================
+
+fn routes_apis(mc: ModelController) -> Router {
+    web::routes_tickets::ticket_routes(mc)
+        .route_layer(middleware::from_fn(web::auth_middleware::mw_require_auth))
+}
+
+
 
 async fn main_response_mapper(res: Response) -> Response {
     println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
@@ -45,11 +65,6 @@ async fn main_response_mapper(res: Response) -> Response {
     println!();
     
     res
-}
-
-/* Static routing */
-fn route_static_fx() -> Router {
-    Router::new().nest_service("/", get_service(ServeDir::new("/")))
 }
 
 // serialize - convert Rust to JSON

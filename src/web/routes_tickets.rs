@@ -1,4 +1,4 @@
-use axum::routing::{delete, post};
+use axum::routing::{delete, get, post};
 use axum::{Json, Router};
 use axum::extract::{Path, State};
 
@@ -38,9 +38,10 @@ async fn delete_ticket(
     Ok(Json(ticket))
 }
 
-pub fn routes(mc: ModelController) -> Router {
+pub fn ticket_routes(mc: ModelController) -> Router {
     Router::new()
     .route("/tickets", post(create_ticket).get(list_tickets))
-    .route("ticket/:id", delete(delete_ticket))
+    .route("/tickets/all", get(list_tickets))
+    .route("/ticket/:id", delete(delete_ticket))
     .with_state(mc)
 }
