@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{Error, Result, ctx::Ctx};
 use serde::{Serialize, Deserialize};
 use std::sync::{Arc, Mutex};
 
@@ -6,7 +6,8 @@ use std::sync::{Arc, Mutex};
 // model
 pub struct Ticket {
     pub id: u64,
-    pub title: String
+    pub title: String,
+    pub creator_id: String
 }
 
 // dto
@@ -33,13 +34,14 @@ impl ModelController {
 // CRUD Implementation 
 impl ModelController {
     /* Create a ticket */
-    pub async fn create_ticket(&self, tc: TicketForCreate) -> Result<Ticket> {
+    pub async fn create_ticket(&self, ctx: Ctx, tc: TicketForCreate) -> Result<Ticket> {
         let mut store = self.ticket_stores.lock().unwrap();
 
         let id = store.len() as u64;
 
         let ticket: Ticket = Ticket {
             id, 
+            creator_id: ctx.user_id().to_string(),
             title: tc.title
         }; 
 
@@ -49,7 +51,7 @@ impl ModelController {
     }
 
     /* Retrieve all tickets */
-    pub async fn list_tickets(&self) -> Result<Vec<Ticket>> {
+    pub async fn list_tickets(&self, _ctx: Ctx) -> Result<Vec<Ticket>> {
         let store = self.ticket_stores.lock().unwrap();
 
         let tickets = store.iter().filter_map(|t| t.clone()).collect();
@@ -58,7 +60,7 @@ impl ModelController {
     }
 
     /* Delete a ticket */
-    pub async fn delete_ticket(&self, id: u64) -> Result<Ticket> {
+    pub async fn delete_ticket(&self,_ctx: Ctx, id: u64) -> Result<Ticket> {
         let mut store = self.ticket_stores.lock().unwrap();
   
         let ticket = store.get_mut(id as usize).and_then(|t| t.take());
