@@ -1,6 +1,6 @@
 #![allow(unused)] // To be deleted later!
  
-use axum::{Json, Router, extract::{Path, Query}, middleware, response::{Html, IntoResponse, Response}, routing::{get, get_service}};
+use axum::{Json, Router, extract::{Path, Query}, http::{Method, Uri}, middleware, response::{Html, IntoResponse, Response}, routing::{get, get_service}};
 use serde::Deserialize;
 use serde_json::json;
 use tower_cookies::{CookieManagerLayer, service};
@@ -8,12 +8,13 @@ use tower_http::services::ServeDir;
 use uuid::Uuid;
 use std::{net::SocketAddr};
 
-use crate::model::ModelController;
+use crate::{ctx::Ctx, log::log_request, model::ModelController};
 
 pub use self::error::{Error, Result};
 
 mod error;
 mod model;
+mod log;
 mod web;
 mod ctx;
 
@@ -66,9 +67,16 @@ fn routes_apis(mc: ModelController) -> Router {
 
 
 
-async fn main_response_mapper(res: Response) -> Response {
+async fn main_response_mapper(
+    ctx: Option<Ctx>,
+    uri: Uri,
+    req_method: Method,
+    res: Response
+) -> Response {
     println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
     let uuid = Uuid::new_v4();
+
+    println!("************* RES **************: {:?}", res);
 
     /* Get the eventual response error */
     let service_error = res.extensions().get::<Error>();
@@ -92,7 +100,8 @@ async fn main_response_mapper(res: Response) -> Response {
     });
     
     /* Build and log the server log line */
-    println!("     ->> server log line: {uuid} - Error: {service_error:?}");
+   let client_error = client_status_error.unzip().1;
+   log_request(uuid, req_method, uri, ctx, service_error, client_error.as_ref()).await;
 
     error_response.unwrap_or(res)
     
