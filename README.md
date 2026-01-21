@@ -1,13 +1,16 @@
-/* Start auto-reloading server: */
-// cargo watch -q -c -w src/ -x run 
-// cargo watch -q -c -w tests/ -x "test -q quick_dev -- --nocapture"
+```sh
+# Terminal 1 - to run the server.
+cargo watch -q -c -w src/ -w .cargo/ -x run
 
-// Serialization: Convert Rust → JSON (or another format)
-// Deserialization: Convert JSON → Rust 
+# Terminal 2 - to run the quick_dev.
+cargo watch -q -c -w tests/ -x "test -q quick_dev -- --nocapture"
 
-//todo!() -> A built-in Rust macro that means "I haven’t finished this part yet."
+Serialization: Convert Rust → JSON (or another format)
+Deserialization: Convert JSON → Rust
 
-/** 
+todo!() -> A built-in Rust macro that means "I haven’t finished this part yet."
+
+/**
  * Explanation of Arc<Mutex<Vec<Option<Ticket>>>>
     Vec<Option<Ticket>>
         A list of tickets (some slots may be empty)
@@ -28,19 +31,25 @@
         Thread-safe
 */
 
-/* 
+/*
     .lock().unwrap()
     lock() can fail only if another thread panicked while holding the lock
     unwrap() says: “If that happens, crash the program.”
-    clone() needed because: 
+    clone() needed because:
         You store it and
         Return it
 */
 
-/* 
+/*
     store.iter().filter_map(|t| t.clone()).collect() in Rust === store.filter(t => t !== null) in JS
 
     The goal is: Convert Vec<Option<Ticket>>
-        ⟶ into Vec<Ticket> 
+        ⟶ into Vec<Ticket>
         ⟶ skipping all None values
 */
+
+# Tracing in Rust
+    Tracing is a modern, structured, and async-aware way to observe what your program is doing at runtime — especially useful for servers, async code, and distributed systems.
+
+'static means: “This value lives for the entire lifetime of the program”
+```

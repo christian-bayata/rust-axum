@@ -1,25 +1,38 @@
 #![allow(unused)] // To be deleted later!
- 
+
+mod config;
+mod error;
+mod model; 
+mod log;
+mod web;
+mod ctx;
+
+pub use self::error::{Error, Result};
+pub use config::Config;
+
 use axum::{Json, Router, extract::{Path, Query}, http::{Method, Uri}, middleware, response::{Html, IntoResponse, Response}, routing::{get, get_service}};
 use serde::Deserialize;
 use serde_json::json;
 use tower_cookies::{CookieManagerLayer, service};
 use tower_http::services::ServeDir;
+use tracing::{debug, info};
+use tracing_subscriber::EnvFilter;
 use uuid::Uuid;
 use std::{net::SocketAddr};
-
 use crate::{ctx::Ctx, log::log_request, model::ModelController};
 
-pub use self::error::{Error, Result};
 
-mod error;
-mod model;
-mod log;
-mod web;
-mod ctx;
 
-#[tokio::main]
+
+#[tokio::main] 
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt()
+        .without_time() 
+        .with_target(false)
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
+
+    // Initialize 
     let mc = ModelController::new().await?;
 
     let routes_all = Router::new()
@@ -36,7 +49,7 @@ async fn main() -> Result<()> {
 
     // region:  -- Start Server
     let addr = SocketAddr::from(([127,0,0,1], 8080));
-    println!("->> LISTENING on {addr}\n");
+    info!("->> LISTENING on {addr}\n");
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, routes_all).await.unwrap();
@@ -73,10 +86,8 @@ async fn main_response_mapper(
     req_method: Method,
     res: Response
 ) -> Response {
-    println!("->> {:<12} - main_response_mapper", "RES_MAPPER");
+    debug!("->> {:<12} - main_response_mapper", "RES_MAPPER");
     let uuid = Uuid::new_v4();
-
-    println!("************* RES **************: {:?}", res);
 
     /* Get the eventual response error */
     let service_error = res.extensions().get::<Error>();
@@ -93,7 +104,7 @@ async fn main_response_mapper(
             }
         });
 
-        println!("     ->> client_error_body: {client_error_body}");
+        debug!("     ->> client_error_body: {client_error_body}");
     
         /* Build the new response from the client_error_body */
         (*status_code, Json(client_error_body)).into_response() 
@@ -108,7 +119,7 @@ async fn main_response_mapper(
 }
 
 // serialize - convert Rust to JSON
-// deserialize - convert JSON to Rust
+// deserialize - convert JSON to Rust 
 #[derive(Debug, Deserialize)] 
 struct HelloParams {
     name: Option<String>  // optional, not required
@@ -116,7 +127,7 @@ struct HelloParams {
 
 /* e.g., `/hello?name=Frank` */
 async fn handler_query_fx(Query(params): Query<HelloParams>) -> impl IntoResponse {
-    println!("->> {:<12} - handler_query_fx - {params:?}", "HANDLER");
+    debug!("->> {:<12} - handler_query_fx - {params:?}", "HANDLER");
 
     let name = params.name.as_deref().unwrap_or("World");
 
@@ -125,7 +136,7 @@ async fn handler_query_fx(Query(params): Query<HelloParams>) -> impl IntoRespons
 
 /* e.g., `/hello2/Frank` */
 async fn handler_path_fx(Path(name): Path<String>) -> impl IntoResponse {
-    println!("->> {:<12} - handler_path_fx - {name:?}", "HANDLER");
+    debug!("->> {:<12} - handler_path_fx - {name:?}", "HANDLER");
 
     Html(format!("Hello <strong>{name}</strong>"));
 }

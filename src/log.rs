@@ -5,7 +5,8 @@
  use serde::Serialize;
  use serde_json::{json, Value};
  use serde_with::skip_serializing_none;
- use uuid::{Uuid, timestamp};
+ use tracing::debug;
+use uuid::{Uuid, timestamp};
 
  pub async fn log_request(
     uuid: Uuid,
@@ -36,7 +37,7 @@
         error_data,
     };
 
-    println!("    ->> log_request: \n{}", json!(log_line));
+    debug!("    ->> log_request: \n{}", json!(log_line));
 
     // TODO - Send to cloud-watch.
 
