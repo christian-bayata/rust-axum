@@ -7,6 +7,9 @@ mod log;
 mod web;
 mod ctx;
 
+//#
+pub mod _dev_utils;
+
 pub use self::error::{Error, Result};
 pub use config::Config;
 
@@ -32,9 +35,12 @@ async fn main() -> Result<()> {
         .with_env_filter(EnvFilter::from_default_env())
         .init();
 
+    // -- FOR DEV ONLY
+    _dev_utils::init_dev().await;
+
     // Initialize 
     let mc = ModelController::new().await?;
-
+ 
     let routes_all = Router::new()
         .merge(routes_public())
         .merge(web::routes_login::routes())

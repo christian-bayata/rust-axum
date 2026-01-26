@@ -5,6 +5,14 @@ cargo watch -q -c -w src/ -w .cargo/ -x run
 # Terminal 2 - to run the quick_dev.
 cargo watch -q -c -w tests/ -x "test -q quick_dev -- --nocapture"
 
+# Start the Postgres server docker image:
+docker run --rm --name pg -p 5432:5432 -e POSTGRES_PASSWORD=welcome postgres:15
+
+# (Optional) To have a psql terminal on pg.
+# In another terminal (tab) run psql:
+docker exec -it -u postgres pg psql
+
+
 Serialization: Convert Rust → JSON (or another format)
 Deserialization: Convert JSON → Rust
 
