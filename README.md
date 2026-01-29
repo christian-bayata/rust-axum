@@ -60,4 +60,21 @@ todo!() -> A built-in Rust macro that means "I haven’t finished this part yet.
     Tracing is a modern, structured, and async-aware way to observe what your program is doing at runtime — especially useful for servers, async code, and distributed systems.
 
 'static means: “This value lives for the entire lifetime of the program”
+
+The model/store flow chart:
+APP LAYER
+   ↓
+MODEL LAYER  (business logic boundary)
+   ↓
+STORE LAYER  (database boundary)
+   ↓
+DATABASE
+
+- store = low-level database access (SQLx, Postgres, pools, connections)
+
+- model = business logic layer
+
+- app/web = API layer
+
+This separation is intentional and very professional architecture.
 ```
